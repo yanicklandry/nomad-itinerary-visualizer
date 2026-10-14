@@ -1,0 +1,1135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <title>Nomad Itinerary Visualizer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #f3f5f7;
+      --surface: #ffffff;
+      --surface-raised: #ffffff;
+      --ink: #14202b;
+      --muted: #5b6874;
+      --faint: #7e8993;
+      --line: #dce2e7;
+      --line-strong: #c7d0d8;
+      --empty: #e8ecef;
+      --empty-ink: #687681;
+      --base: #19704b;
+      --base-soft: #e5f3ec;
+      --reject: #a73838;
+      --reject-soft: #f9e8e8;
+      --alternative: #59636e;
+      --alternative-soft: #edf0f2;
+      --shadow: 0 1px 2px rgba(22, 32, 41, .06), 0 8px 28px rgba(22, 32, 41, .05);
+      --radius: 14px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #101419;
+        --surface: #171d23;
+        --surface-raised: #1d242b;
+        --ink: #f2f5f7;
+        --muted: #b2bdc7;
+        --faint: #8d99a4;
+        --line: #2d363e;
+        --line-strong: #414c55;
+        --empty: #242c33;
+        --empty-ink: #98a4ae;
+        --base: #63d39e;
+        --base-soft: #19392d;
+        --reject: #ff8989;
+        --reject-soft: #432424;
+        --alternative: #c0c8cf;
+        --alternative-soft: #2c343b;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px rgba(0, 0, 0, .18);
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      background: var(--page);
+      color: var(--ink);
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+
+    .page {
+      width: min(1540px, 100%);
+      margin: 0 auto;
+      padding: 44px 28px 34px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 28px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 7px;
+      max-width: 700px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(34px, 4.4vw, 62px);
+      line-height: .98;
+      letter-spacing: -.035em;
+      font-weight: 700;
+    }
+
+    .intro p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 670px;
+      font-size: 16px;
+    }
+
+    .count {
+      display: grid;
+      justify-items: end;
+      gap: 3px;
+      color: var(--muted);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      white-space: nowrap;
+      padding-bottom: 5px;
+    }
+
+    .version-label {
+      color: var(--faint);
+      font-size: 11px;
+    }
+
+    .legend-panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .legend-heading {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin: 0 0 10px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 20px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .legend-country {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend-country > strong { color: var(--ink); font-weight: 700; }
+
+    .legend-cities {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 5px 9px;
+    }
+
+    .legend-city {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      background: var(--swatch);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.09);
+      flex: 0 0 auto;
+    }
+
+    .timeline-heading {
+      display: grid;
+      grid-template-columns: minmax(300px, 1.45fr) minmax(610px, 2.55fr);
+      gap: 18px;
+      align-items: end;
+      padding: 0 15px 7px;
+      color: var(--faint);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      letter-spacing: .02em;
+    }
+
+    .month-heading {
+      display: grid;
+      grid-template-columns: repeat(var(--month-count), minmax(0, 1fr));
+      gap: 2px;
+      text-align: center;
+    }
+
+    .month-heading span {
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .routes {
+      display: grid;
+      gap: 9px;
+    }
+
+    .route {
+      display: grid;
+      grid-template-columns: minmax(300px, 1.45fr) minmax(610px, 2.55fr);
+      gap: 18px;
+      align-items: center;
+      min-height: 100px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px 15px;
+      box-shadow: 0 1px 1px rgba(19, 29, 38, .03);
+    }
+
+    .route.base {
+      border-color: color-mix(in srgb, var(--base) 55%, var(--line));
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--base) 14%, transparent), var(--shadow);
+    }
+
+    .route.rejected { opacity: .84; }
+
+    .route-info {
+      width: 100%;
+      margin: -5px;
+      border: 0;
+      border-radius: 8px;
+      padding: 5px;
+      color: inherit;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .route-info:hover { background: color-mix(in srgb, var(--empty) 60%, transparent); }
+    .route-info:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--base) 75%, transparent);
+      outline-offset: 2px;
+    }
+
+    .route-topline {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      justify-content: space-between;
+    }
+
+    .route-title {
+      min-width: 0;
+      font-size: 15px;
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+
+    .route-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .chevron {
+      width: 16px;
+      height: 16px;
+      color: var(--faint);
+      transition: transform .18s ease;
+    }
+
+    .route-info[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+    .route-number {
+      color: var(--faint);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .badge {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 4px 8px 3px;
+      font-size: 10px;
+      line-height: 1.2;
+      letter-spacing: .055em;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge.base { color: var(--base); background: var(--base-soft); }
+    .badge.rejected { color: var(--reject); background: var(--reject-soft); }
+    .badge.alternative { color: var(--alternative); background: var(--alternative-soft); }
+
+    .stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 12px;
+      margin-top: 11px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .stat { white-space: nowrap; }
+    .stat strong {
+      color: var(--ink);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .reason {
+      color: var(--reject);
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .transport-details {
+      display: none;
+      grid-column: 1 / -1;
+      min-width: 0;
+      margin-top: 2px;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+    }
+
+    .transport-details.open { display: block; }
+
+    .transport-details h3 {
+      margin: 0 0 10px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .transport-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+
+    .transport-table col:nth-child(1) { width: 4%; }
+    .transport-table col:nth-child(2) { width: 10%; }
+    .transport-table col:nth-child(3) { width: 22%; }
+    .transport-table col:nth-child(4) { width: 10%; }
+    .transport-table col:nth-child(5) { width: 15%; }
+    .transport-table col:nth-child(6) { width: 11%; }
+    .transport-table col:nth-child(7) { width: 19%; }
+    .transport-table col:nth-child(8) { width: 9%; }
+
+    .transport-table th,
+    .transport-table td {
+      padding: 8px 7px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      overflow-wrap: anywhere;
+    }
+
+    .transport-table th {
+      color: var(--faint);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .045em;
+      text-transform: uppercase;
+    }
+
+    .transport-table td:first-child,
+    .transport-table td:nth-child(2),
+    .transport-table td:nth-child(6),
+    .transport-table td:last-child {
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    }
+
+    .leg-note {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .transport-footnote,
+    .transport-empty {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .transport-empty {
+      margin: 0;
+      padding: 2px 0 1px;
+      font-size: 13px;
+    }
+
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(var(--month-count), minmax(0, 1fr));
+      gap: 2px;
+    }
+
+    .month-cell {
+      position: relative;
+      overflow: visible;
+      min-width: 0;
+      min-height: 44px;
+      border-radius: 4px;
+      background: var(--empty);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+
+    .month-cell.empty {
+      background-image: repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(127,139,149,.07) 5px, rgba(127,139,149,.07) 7px);
+    }
+
+    .stay-segment {
+      position: absolute;
+      inset-block: 0;
+      left: var(--segment-left);
+      width: var(--segment-width);
+      min-width: 8px;
+      border: 0;
+      border-radius: 3px;
+      padding: 0;
+      background: var(--segment-color);
+      box-shadow: inset -1px 0 rgba(255,255,255,.24), inset 0 0 0 1px rgba(0,0,0,.1);
+      cursor: help;
+      z-index: 1;
+      transition: filter .12s ease, transform .12s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stay-segment:hover,
+    .stay-segment:focus-visible {
+      filter: brightness(1.14);
+      transform: translateY(-2px);
+      z-index: 4;
+    }
+
+    .stay-segment:focus-visible {
+      outline: 3px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    .stay-segment.short {
+      min-width: 10px;
+      z-index: 2;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.75), 0 0 0 1px rgba(0,0,0,.2);
+    }
+
+    .month-label { display: none; }
+
+    .continues-marker {
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      z-index: 3;
+      border-radius: 3px;
+      padding: 1px 3px;
+      color: #fff;
+      background: rgba(13, 18, 23, .76);
+      font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      font-size: 7px;
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: .01em;
+      pointer-events: none;
+    }
+
+    .tooltip {
+      position: fixed;
+      z-index: 20;
+      width: max-content;
+      max-width: min(290px, calc(100vw - 24px));
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(4px);
+      background: #0d1217;
+      color: #f7fafc;
+      border: 1px solid #3c4750;
+      border-radius: 9px;
+      padding: 9px 11px;
+      font-size: 12px;
+      line-height: 1.35;
+      box-shadow: 0 10px 28px rgba(0,0,0,.3);
+      transition: opacity .1s ease, transform .1s ease;
+    }
+    .tooltip.show { opacity: 1; transform: translateY(0); }
+    .tooltip strong { display: block; margin-bottom: 1px; }
+    .tooltip span { color: #bac5cd; }
+
+    footer {
+      color: var(--faint);
+      font-size: 11px;
+      margin: 20px 2px 0;
+      padding-top: 15px;
+      border-top: 1px solid var(--line);
+    }
+
+    @media (max-width: 930px) {
+      .page { padding: 30px 18px 28px; }
+      .intro { grid-template-columns: 1fr; gap: 8px; }
+      .count { justify-items: start; padding: 0; }
+      .timeline-heading { display: none; }
+      .route { grid-template-columns: 1fr; gap: 13px; }
+      .transport-details { margin-top: 0; padding-top: 13px; }
+      .transport-table,
+      .transport-table tbody,
+      .transport-table tr,
+      .transport-table td { display: block; width: 100%; }
+      .transport-table colgroup,
+      .transport-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .transport-table tr {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .transport-table tr:first-child { padding-top: 0; }
+      .transport-table td {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 10px;
+        padding: 3px 0;
+        border: 0;
+        font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      }
+      .transport-table td::before {
+        content: attr(data-label);
+        color: var(--faint);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+      .transport-table td:first-child,
+      .transport-table td:nth-child(2),
+      .transport-table td:nth-child(6),
+      .transport-table td:last-child {
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+      }
+      .leg-note { grid-column: 2; }
+      .month-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+      .month-cell { min-height: 54px; overflow: hidden; }
+      .month-label {
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+        margin: 4px;
+        padding: 1px 3px;
+        border-radius: 3px;
+        color: #fff;
+        background: rgba(13, 18, 23, .66);
+        font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+        font-size: 8px;
+        font-weight: 700;
+        pointer-events: none;
+      }
+    }
+
+    @media (max-width: 440px) {
+      .page { padding: 24px 12px; }
+      h1 { font-size: 36px; }
+      .legend-panel { padding: 13px; }
+      .route { padding: 13px; }
+      .route-topline { display: block; }
+      .route-actions { margin-top: 8px; }
+      .badge { display: inline-block; margin: 0; }
+      .transport-table td { grid-template-columns: 78px minmax(0, 1fr); gap: 8px; }
+      .month-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .month-cell { min-height: 56px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="intro" aria-labelledby="view-title">
+      <div>
+        <h1 id="view-title">Compare 19 routes, month by month</h1>
+        <p>Each column is one month. Point to or tap a colored stay for its dates, or open a route heading for its transport legs.</p>
+      </div>
+      <div class="count"><span>Oct 2026 → Jun 2027</span><span class="version-label">v2026-10-14a · click a row for transport details</span></div>
+    </section>
+
+    <section class="legend-panel" aria-labelledby="legend-title">
+      <h2 class="legend-heading" id="legend-title">Country and city key</h2>
+      <ul class="legend" id="legend"></ul>
+    </section>
+
+    <div class="timeline-heading" aria-hidden="true">
+      <span>Option and totals</span>
+      <div class="month-heading" id="month-heading"></div>
+    </div>
+
+    <section class="routes" id="routes" aria-label="Itinerary comparison"></section>
+
+    <footer>Data from Notion Itinerary options database, 2026-10-11. Ask Muse to refresh when new rows are added.</footer>
+  </main>
+  <div class="tooltip" id="tooltip" role="tooltip"></div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var months = [];
+      var monthCursor = isoDate('2026-10-01');
+      var timelineEnd = isoDate('2027-07-01');
+      while (monthCursor < timelineEnd) {
+        var monthEnd = new Date(Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 1));
+        months.push({
+          start: isoValue(monthCursor),
+          end: isoValue(monthEnd),
+          label: monthCursor.toLocaleDateString('en-CA', { month:'short', year:'2-digit', timeZone:'UTC' })
+        });
+        monthCursor = monthEnd;
+      }
+      document.documentElement.style.setProperty('--month-count', months.length);
+
+      var cities = {
+        'Hanoi': { color:'#1e8449', short:'Hanoi', compact:'Hanoi', country:'Vietnam' },
+        'Da Nang': { color:'#27ae60', short:'Da Nang', compact:'Da Nang', country:'Vietnam' },
+        'Ho Chi Minh City': { color:'#82e0aa', short:'Saigon', compact:'Saigon', country:'Vietnam' },
+        'Shanghai': { color:'#e74c3c', short:'Shanghai', compact:'Shanghai', country:'China' },
+        'Kunming': { color:'#f1948a', short:'Kunming', compact:'Kunming', country:'China' },
+        'Nanning': { color:'#f1948a', short:'Nanning', compact:'Nanning', country:'China' },
+        'Vientiane': { color:'#7d3c98', short:'Vientiane', compact:'Vientiane', country:'Laos' },
+        'Phnom Penh': { color:'#8e44ad', short:'Phnom Penh', compact:'PNH', country:'Cambodia' },
+        'Bangkok': { color:'#e67e22', short:'Bangkok', compact:'Bangkok', country:'Thailand' },
+        'Chiang Mai': { color:'#f5b041', short:'Chiang Mai', compact:'Chiang Mai', country:'Thailand' },
+        'Penang': { color:'#2e86c1', short:'Penang', compact:'Penang', country:'Malaysia' },
+        'Kuala Lumpur': { color:'#85c1e9', short:'KL', compact:'KL', country:'Malaysia' },
+        'Singapore': { color:'#e91e63', short:'Singapore', compact:'Singapore', country:'Singapore' },
+        'Bali': { color:'#009688', short:'Bali', compact:'Bali', country:'Indonesia' },
+        'Seoul': { color:'#5d6d7e', short:'Seoul', compact:'SEL', country:'South Korea' },
+        'Melbourne': { color:'#1a5276', short:'Melbourne', compact:'MEL', country:'Australia' },
+        'Santiago': { color:'#a04000', short:'Santiago', compact:'SCL', country:'Chile' },
+        'Asuncion': { color:'#d4ac0d', short:'Asuncion', compact:'ASU', country:'Paraguay' },
+        'Sao Paulo': { color:'#c0392b', short:'Sao Paulo', compact:'SAO', country:'Brazil' },
+        'Lima': { color:'#48c9b0', short:'Lima', compact:'LIM', country:'Peru' },
+        'Madrid': { color:'#922b21', short:'Madrid', compact:'MAD', country:'Spain' }
+      };
+
+      function b(city, start, end) { return { city:city, start:start, end:end }; }
+      function leg(date, from, to, mode, company, number, duration, cost, note) {
+        return { date:date, from:from, to:to, mode:mode, company:company, number:number, duration:duration, cost:cost, note:note || '' };
+      }
+
+      var sharedTail = [
+        leg('2027-04-24','Bali (DPS)','Melbourne (MEL)','flight','Batik Air Malaysia','OD177','5h40 (21:00–04:40+1)','CAD 516','Checked 2026-10-13 for the correct date; plan scored at CAD 515'),
+        leg('2027-05-02','Melbourne (MEL)','Santiago (SCL) via Sydney','flight','Qantas','QF420 + QF27','16h35 (08:15–10:50, arrives same calendar day local)','CAD 1640','Sunday crossing; no work report due'),
+        leg('2027-05-09','Santiago (SCL)','Asuncion (ASU) via Buenos Aires (AEP)','flight','JetSMART','JA703 + JA3796','17h29 (13:23–07:52+1)','CAD 584','Overnight layover at AEP (16:30–06:00); plan scored at CAD 552. A shorter 7h02 routing (JA711+JA3790) was priced at CAD 552 in earlier research — verify baggage at booking.'),
+        leg('2027-05-23','Asuncion','Sao Paulo','bus','—','—','~24h','USD 85','Estimate; overnight international bus'),
+        leg('2027-06-24','Sao Paulo (GRU)','Lima (LIM)','flight','Sky Airline','H25567','5h00 nonstop (20:05–23:05)','CAD 509','Plan scored at USD 300')
+      ];
+
+      var transportLegs = {
+        V23: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2026-12-06','Ho Chi Minh City (SGN)','Shanghai (PVG)','flight','VietJet Air','VJ5010','3h55 nonstop (20:05–01:00+1)','CAD 173','Fare checked 2026-10-13; Sunday, no work report due'),
+          leg('2026-12-13','Shanghai','Kunming','high-speed rail','China Railway','G-train (varies)','~11h','USD 125','Estimate; book on 12306'),
+          leg('2026-12-14','Kunming South','Vientiane','train','China-Laos Railway','D87','9h36 (08:08–17:44)','USD 75','Laos eVisa required in advance'),
+          leg('2026-12-17','Vientiane','Bangkok','sleeper train','State Railway of Thailand','134','overnight','USD 26','Estimate; confirm through sleeper when booking (may start at Nong Khai)'),
+          leg('2027-01-29','Bangkok','Chiang Mai','sleeper train','State Railway of Thailand','—','overnight','USD 23','Estimate'),
+          leg('2027-02-25','Chiang Mai','Bali (via Bangkok)','flight','—','—','—','CAD 450','Estimate; no 3-bag itinerary found on Kiwi 2026-10-13')
+        ].concat(sharedTail),
+        V18: [
+          leg('2026-11-01','Hanoi','Saigon','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2027-01-21','Saigon (SGN)','Bangkok (BKK)','flight','Vietnam Airlines','—','1h40 nonstop','CAD 159',''),
+          leg('2027-02-04','Bangkok','Penang','sleeper train + ferry','—','—','—','USD 40','Estimate'),
+          leg('2027-02-11','Penang','Kuala Lumpur','ETS train','—','—','—','USD 40','Estimate'),
+          leg('2027-02-18','Kuala Lumpur','Singapore','shuttle train','—','—','—','USD 40','Estimate'),
+          leg('2027-02-25','Singapore (SIN)','Bali (DPS)','flight','Scoot','—','2h55 nonstop','CAD 223','')
+        ].concat(sharedTail),
+        V19: [
+          leg('2026-11-01','Hanoi','Saigon','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2027-01-21','Saigon (SGN)','Bangkok (BKK)','flight','Vietnam Airlines','—','1h40 nonstop','CAD 159',''),
+          leg('2027-02-11','Bangkok','Penang','land','—','—','—','USD 40','Estimate'),
+          leg('2027-02-18','Penang','Kuala Lumpur','ETS train','—','—','—','USD 40','Estimate'),
+          leg('2027-02-27','Kuala Lumpur (KUL)','Bali (DPS) via Singapore','flight','Scoot','—','7h45','CAD 233','')
+        ].concat(sharedTail),
+        V20: [
+          leg('2026-11-01','Hanoi','Saigon','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2027-01-21','Saigon (SGN)','Bangkok (BKK)','flight','Vietnam Airlines','—','1h40 nonstop','CAD 159',''),
+          leg('2027-02-18','Bangkok','Penang','land','—','—','—','USD 40','Estimate'),
+          leg('2027-02-25','Penang (PEN)','Bali (DPS) via Singapore','flight','Scoot','—','5h55','CAD 271','')
+        ].concat(sharedTail),
+        V21: [
+          leg('2026-11-01','Hanoi','Saigon','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2027-01-21','Saigon (SGN)','Chiang Mai (CNX) via Bangkok','flight','VietJet','—','5h25','CAD 288',''),
+          leg('2027-02-11','Chiang Mai','Bangkok','night train','—','—','overnight','USD 40','Estimate'),
+          leg('2027-02-25','Bangkok (BKK)','Bali (DPS) via Singapore','flight','Scoot','—','10h50','CAD 405','')
+        ].concat(sharedTail),
+        V22: [
+          leg('2026-11-01','Hanoi','Saigon','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2027-01-21','Saigon (SGN)','Bangkok (BKK)','flight','Vietnam Airlines','—','1h40 nonstop','CAD 159',''),
+          leg('2027-02-25','Bangkok (BKK)','Bali (DPS) via Singapore','flight','Scoot','—','10h50','CAD 405','')
+        ].concat(sharedTail),
+        V24: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1','~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2026-12-02','Ho Chi Minh City','Da Nang','overnight train','Vietnam Railways','—','~17h','USD 45','Estimate'),
+          leg('2026-12-04','Da Nang','Hanoi','overnight train','Vietnam Railways','—','~16h','USD 45','Estimate'),
+          leg('2026-12-05','Hanoi','Nanning via Huu Nghi border','bus','—','—','full day','USD 25','Estimate; cross-border bus'),
+          leg('2026-12-06','Nanning','Shanghai','high-speed rail','China Railway','G-train','~11h','USD 122','Estimate'),
+          leg('2026-12-13','Shanghai','Kunming','high-speed rail','China Railway','G-train (varies)','~11h','USD 125','Estimate; book on 12306'),
+          leg('2026-12-14','Kunming South','Vientiane','train','China-Laos Railway','D87','9h36 (08:08–17:44)','USD 75','Laos eVisa required in advance'),
+          leg('2026-12-17','Vientiane','Bangkok','sleeper train','State Railway of Thailand','134','overnight','USD 26','Estimate; confirm through sleeper when booking (may start at Nong Khai)'),
+          leg('2027-01-29','Bangkok','Chiang Mai','sleeper train','State Railway of Thailand','—','overnight','USD 23','Estimate'),
+          leg('2027-02-25','Chiang Mai','Bali (via Bangkok)','flight','—','—','—','CAD 450','Estimate; no 3-bag itinerary found on Kiwi 2026-10-13')
+        ].concat(sharedTail),
+        V25: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2026-12-06','Ho Chi Minh City (SGN)','Shanghai (PVG)','flight','VietJet Air','VJ5010','3h55 nonstop (20:05–01:00+1)','CAD 173','Fare checked 2026-10-13; Sunday, no work report due'),
+          leg('2026-12-13','Shanghai','Kunming','high-speed rail','China Railway','G-train (varies)','~11h','USD 125','Estimate; book on 12306'),
+          leg('2026-12-14','Kunming South','Vientiane','train','China-Laos Railway','D87','9h36 (08:08–17:44)','USD 75','Laos eVisa required in advance'),
+          leg('2026-12-17','Vientiane','Bangkok','sleeper train','State Railway of Thailand','134','overnight','USD 26','Estimate; confirm through sleeper when booking (may start at Nong Khai)'),
+          leg('2027-01-29','Bangkok','Penang','sleeper train + ferry','State Railway of Thailand','—','overnight+','USD 40','Estimate'),
+          leg('2027-02-08','Penang','Kuala Lumpur','ETS train','KTM','—','~4h','USD 40','Estimate'),
+          leg('2027-02-18','Kuala Lumpur','Singapore','bus/train','—','—','~5h','USD 30','Estimate'),
+          leg('2027-02-25','Singapore (SIN)','Bali (DPS)','flight','Scoot','TR280','2h55 (07:15–10:10)','CAD 224','Checked 2026-10-13')
+        ].concat(sharedTail),
+        V26: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2026-12-06','Ho Chi Minh City (SGN)','Shanghai (PVG)','flight','VietJet Air','VJ5010','3h55 nonstop (20:05–01:00+1)','CAD 173','Fare checked 2026-10-13; Sunday, no work report due'),
+          leg('2026-12-13','Shanghai','Kunming','high-speed rail','China Railway','G-train (varies)','~11h','USD 125','Estimate; book on 12306'),
+          leg('2026-12-14','Kunming South','Vientiane','train','China-Laos Railway','D87','9h36 (08:08–17:44)','USD 75','Laos eVisa required in advance'),
+          leg('2026-12-16','Vientiane','Bangkok','sleeper train','State Railway of Thailand','134','overnight','USD 26','Estimate; confirm through sleeper when booking (may start at Nong Khai)'),
+          leg('2027-02-25','Bangkok (BKK)','Bali (DPS) via Singapore','flight','Scoot','TR621 + TR280','10h50 (22:20–10:10+1)','CAD 405','Checked 2026-10-14; overnight via SIN')
+        ].concat(sharedTail),
+        V27: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1','~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2026-12-02','Ho Chi Minh City','Da Nang','overnight train','Vietnam Railways','—','~17h','USD 45','Estimate'),
+          leg('2026-12-04','Da Nang','Hanoi','overnight train','Vietnam Railways','—','~16h','USD 45','Estimate'),
+          leg('2026-12-05','Hanoi','Nanning via Huu Nghi border','bus','—','—','full day','USD 25','Estimate; cross-border bus'),
+          leg('2026-12-06','Nanning','Shanghai','high-speed rail','China Railway','G-train','~11h','USD 122','Estimate'),
+          leg('2026-12-13','Shanghai','Kunming','high-speed rail','China Railway','G-train (varies)','~11h','USD 125','Estimate; book on 12306'),
+          leg('2026-12-14','Kunming South','Vientiane','train','China-Laos Railway','D87','9h36 (08:08–17:44)','USD 75','Laos eVisa required in advance'),
+          leg('2026-12-16','Vientiane','Bangkok','sleeper train','State Railway of Thailand','134','overnight','USD 26','Estimate; confirm through sleeper when booking (may start at Nong Khai)'),
+          leg('2027-02-25','Bangkok (BKK)','Bali (DPS) via Singapore','flight','Scoot','TR621 + TR280','10h50 (22:20–10:10+1)','CAD 405','Checked 2026-10-14; overnight via SIN')
+        ].concat(sharedTail),
+        V28: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1','evening departure, ~33h','USD 60','Sleeper berth; exact departure time unconfirmed'),
+          leg('2026-12-06','Ho Chi Minh City (SGN)','Shanghai (PVG)','flight','VietJet Air','VJ5010','3h55 nonstop (20:05–01:00+1)','CAD 173','Fare checked 2026-10-13; Sunday, no work report due'),
+          leg('2026-12-13','Shanghai (PVG)','Bangkok (BKK) via Guangzhou','flight','China Southern','CZ3549 + CZ3081','9h05 (06:55–15:00)','CAD 205','Checked 2026-10-14; early departure'),
+          leg('2027-02-25','Bangkok (BKK)','Bali (DPS) via Singapore','flight','Scoot','TR621 + TR280','10h50 (22:20–10:10+1)','CAD 405','Checked 2026-10-14; overnight via SIN')
+        ].concat(sharedTail),
+        V14b: [
+          leg('2026-11-01','Hanoi','Ho Chi Minh City','train','Vietnam Railways','SE1 (20:50)','~33h','USD 60',''),
+          leg('2027-01-21','Ho Chi Minh City','Phnom Penh','bus','—','—','—','—','not checked'),
+          leg('2027-01-29','Phnom Penh','Da Nang','bus + train','—','—','—','—','not checked'),
+          leg('2027-02-27','Da Nang','Bali (DPS)','flight','—','—','—','—','not checked'),
+          leg('2027-04-24','Bali (DPS)','Melbourne (MEL)','flight','Batik Air Malaysia','OD177','5h40 (21:00–04:40+1)','CAD 516',''),
+          leg('2027-05-02','Melbourne (MEL)','Santiago (SCL) via Sydney','flight','Qantas','QF420 + QF27','16h35','CAD 1640',''),
+          leg('2027-05-09','Santiago (SCL)','Asuncion (ASU)','flight','JetSMART','—','—','CAD 552','7h02 routing (JA711+JA3790) per plan research; 3-bag check found CAD 584 via Buenos Aires, verify at booking'),
+          leg('2027-05-23','Asuncion','Sao Paulo','bus','—','—','~24h','USD 85','Estimate'),
+          leg('2027-07-31','Sao Paulo (GRU)','Lima (LIM)','flight','—','—','—','USD 300','details not checked')
+        ]
+      };
+
+      var routes = [
+        {
+          name:'V23 Shanghai through-route via Laos rail (BASE)', status:'base', final:'-6.3', quality:'26.6', money:32949, flights:4141, cold:16, wet:4,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2026-12-06'),b('Shanghai','2026-12-06','2026-12-13'),b('Kunming','2026-12-13','2026-12-14'),b('Vientiane','2026-12-14','2026-12-18'),b('Bangkok','2026-12-18','2027-01-29'),b('Chiang Mai','2027-01-29','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V14b V14 with a Sunday May 2 crossing', status:'alternative', final:'13.9', money:32850, flights:3515, cold:8, wet:2,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Da Nang','2027-01-29','2027-02-27'),b('Bali','2027-02-27','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V18 Bangkok + Singapore land route, short Sao Paulo', status:'alternative', final:'6.7', quality:'39.7', money:32972, flights:3890, cold:8, wet:4,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Bangkok','2027-01-21','2027-02-04'),b('Penang','2027-02-04','2027-02-11'),b('Kuala Lumpur','2027-02-11','2027-02-18'),b('Singapore','2027-02-18','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V19 V14b with Bangkok + Penang/KL instead of Phnom Penh/Da Nang', status:'alternative', final:'9.6', quality:'41.3', money:31732, flights:3843, cold:8, wet:2,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Bangkok','2027-01-21','2027-02-11'),b('Penang','2027-02-11','2027-02-18'),b('Kuala Lumpur','2027-02-18','2027-02-27'),b('Bali','2027-02-27','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V20 Bangkok month + Penang, 2-stop land', status:'alternative', final:'11.5', quality:'43.0', money:31557, flights:3824, cold:8, wet:4,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Bangkok','2027-01-21','2027-02-18'),b('Penang','2027-02-18','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V21 Chiang Mai + Bangkok night train', status:'alternative', final:'11.1', quality:'43.0', money:31899, flights:4087, cold:8, wet:4,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Chiang Mai','2027-01-21','2027-02-11'),b('Bangkok','2027-02-11','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V22 Bangkok 5 weeks, direct to Bali', status:'alternative', final:'12.9', quality:'44.6', money:31741, flights:3901, cold:8, wet:4,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Bangkok','2027-01-21','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V24 Saigon–Shanghai overland via Da Nang (ALT)', status:'alternative', final:'-10.8', quality:'22.5', money:33314, flights:4596, cold:16, wet:4,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2026-12-02'),b('Da Nang','2026-12-03','2026-12-05'),b('Nanning','2026-12-05','2026-12-06'),b('Shanghai','2026-12-06','2026-12-13'),b('Kunming','2026-12-13','2026-12-14'),b('Vientiane','2026-12-14','2026-12-18'),b('Bangkok','2026-12-18','2027-01-29'),b('Chiang Mai','2027-01-29','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V25 Bangkok–Singapore overland, SIN–DPS flight (ALT)', status:'alternative', final:'-11.0', quality:'23.2', money:34223, flights:4156, cold:16, wet:4,
+          reason:'Not recommended.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2026-12-06'),b('Shanghai','2026-12-06','2026-12-13'),b('Kunming','2026-12-13','2026-12-14'),b('Vientiane','2026-12-14','2026-12-18'),b('Bangkok','2026-12-18','2027-01-29'),b('Penang','2027-01-29','2027-02-08'),b('Kuala Lumpur','2027-02-08','2027-02-18'),b('Singapore','2027-02-18','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V26 Streamlined rail: V23 with efficient Thailand (ALT)', status:'alternative', final:'-4.7', quality:'28.3', money:32964, flights:4096, cold:16, wet:4,
+          reason:'Scores are estimates (delta method from V23).',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2026-12-06'),b('Shanghai','2026-12-06','2026-12-13'),b('Kunming','2026-12-13','2026-12-14'),b('Vientiane','2026-12-14','2026-12-16'),b('Bangkok','2026-12-16','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V27 Streamlined overland: V24 with efficient Thailand (ALT)', status:'alternative', final:'-9.1', quality:'24.2', money:33297, flights:4519, cold:16, wet:4,
+          reason:'Scores are estimates (delta method from V24).',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2026-12-02'),b('Da Nang','2026-12-03','2026-12-05'),b('Nanning','2026-12-05','2026-12-06'),b('Shanghai','2026-12-06','2026-12-13'),b('Kunming','2026-12-13','2026-12-14'),b('Vientiane','2026-12-14','2026-12-16'),b('Bangkok','2026-12-16','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V28 Shanghai week then fly direct to Bangkok (ALT)', status:'alternative', final:'2.4', quality:'35.4', money:32967, flights:4066, cold:15, wet:4,
+          reason:'Scores are estimates (delta method from V23). Skips the Laos rail adventure.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2026-12-06'),b('Shanghai','2026-12-06','2026-12-13'),b('Bangkok','2026-12-13','2027-02-25'),b('Bali','2027-02-25','2027-04-24'),b('Melbourne','2027-04-25','2027-05-02'),b('Santiago','2027-05-02','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-06-24'),b('Lima','2027-06-24','2027-09-20')]
+        },
+        {
+          name:'V17 Madrid week instead of Melbourne and Santiago', status:'rejected', final:'17.8', money:32566, flights:2888, cold:4, wet:0,
+          reason:'Rejected on preference: Melbourne is wanted; Madrid is not.',
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Da Nang','2027-01-29','2027-03-01'),b('Bali','2027-03-01','2027-04-26'),b('Madrid','2027-04-27','2027-05-08'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V14 Da Nang in February + May 4 crossing', status:'alternative', final:'12.6', money:32744, flights:3539, cold:8, wet:0,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Da Nang','2027-01-29','2027-03-01'),b('Bali','2027-03-01','2027-04-26'),b('Melbourne','2027-04-27','2027-05-04'),b('Santiago','2027-05-04','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V12 Da Nang in February (train straight to Saigon)', status:'alternative', final:'10.8', money:32534, flights:3448, cold:10, wet:0,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Da Nang','2027-01-29','2027-03-02'),b('Bali','2027-03-02','2027-04-28'),b('Melbourne','2027-04-29','2027-05-06'),b('Santiago','2027-05-06','2027-05-11'),b('Asuncion','2027-05-11','2027-05-25'),b('Sao Paulo','2027-05-26','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V13 V10 order + May 4 crossing', status:'alternative', final:'10.6', money:33089, flights:3480, cold:8, wet:7,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Da Nang','2026-11-02','2026-11-09'),b('Ho Chi Minh City','2026-11-10','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Ho Chi Minh City','2027-01-28','2027-03-01'),b('Bali','2027-03-01','2027-04-26'),b('Melbourne','2027-04-27','2027-05-04'),b('Santiago','2027-05-04','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V10 Saigon base + Phnom Penh week + 2 months Bali', status:'alternative', final:'8.8', money:32872, flights:3360, cold:10, wet:7,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Da Nang','2026-11-02','2026-11-09'),b('Ho Chi Minh City','2026-11-10','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Ho Chi Minh City','2027-01-28','2027-03-02'),b('Bali','2027-03-02','2027-04-28'),b('Melbourne','2027-04-29','2027-05-06'),b('Santiago','2027-05-06','2027-05-11'),b('Asuncion','2027-05-11','2027-05-25'),b('Sao Paulo','2027-05-26','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V9 Overland Hanoi to Kuala Lumpur, then Bali', status:'alternative', final:'7.8', money:33276, flights:3420, cold:10, wet:7,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Da Nang','2026-11-02','2026-11-09'),b('Ho Chi Minh City','2026-11-10','2027-01-21'),b('Bangkok','2027-01-22','2027-02-18'),b('Penang','2027-02-19','2027-03-02'),b('Bali','2027-03-02','2027-04-28'),b('Melbourne','2027-04-29','2027-05-06'),b('Santiago','2027-05-06','2027-05-11'),b('Asuncion','2027-05-11','2027-05-25'),b('Sao Paulo','2027-05-26','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V8 Saigon base + 2 months Bali, no Seoul', status:'alternative', final:'7.4', money:32813, flights:3360, cold:10, wet:7,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Da Nang','2026-11-02','2026-11-09'),b('Ho Chi Minh City','2026-11-10','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-23'),b('Ho Chi Minh City','2027-01-23','2027-03-02'),b('Bali','2027-03-02','2027-04-28'),b('Melbourne','2027-04-29','2027-05-06'),b('Santiago','2027-05-06','2027-05-11'),b('Asuncion','2027-05-11','2027-05-25'),b('Sao Paulo','2027-05-26','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V15 Saigon to Singapore land line', status:'alternative', final:'6.4', money:34903, flights:3464, cold:8, wet:7,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Da Nang','2026-11-02','2026-11-09'),b('Ho Chi Minh City','2026-11-10','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-28'),b('Bangkok','2027-01-28','2027-02-04'),b('Penang','2027-02-04','2027-02-15'),b('Kuala Lumpur','2027-02-15','2027-02-22'),b('Singapore','2027-02-22','2027-03-01'),b('Bali','2027-03-01','2027-04-26'),b('Melbourne','2027-04-27','2027-05-04'),b('Santiago','2027-05-04','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V16 V14 with Seoul (Phnom Penh to Seoul, then Da Nang)', status:'alternative', final:'-1.7', money:34476, flights:4437, cold:15, wet:0,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Ho Chi Minh City','2026-11-03','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-30'),b('Seoul','2027-01-31','2027-02-07'),b('Da Nang','2027-02-08','2027-03-01'),b('Bali','2027-03-01','2027-04-26'),b('Melbourne','2027-04-27','2027-05-04'),b('Santiago','2027-05-04','2027-05-09'),b('Asuncion','2027-05-09','2027-05-23'),b('Sao Paulo','2027-05-24','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        },
+        {
+          name:'V11 Phnom Penh to Seoul, back to Saigon', status:'alternative', final:'-5.4', money:34431, flights:4228, cold:17, wet:7,
+          blocks:[b('Hanoi','2026-10-27','2026-11-01'),b('Da Nang','2026-11-02','2026-11-09'),b('Ho Chi Minh City','2026-11-10','2027-01-21'),b('Phnom Penh','2027-01-21','2027-01-30'),b('Seoul','2027-01-31','2027-02-07'),b('Ho Chi Minh City','2027-02-07','2027-03-02'),b('Bali','2027-03-02','2027-04-28'),b('Melbourne','2027-04-29','2027-05-06'),b('Santiago','2027-05-06','2027-05-11'),b('Asuncion','2027-05-11','2027-05-25'),b('Sao Paulo','2027-05-26','2027-07-31'),b('Lima','2027-07-31','2027-10-01')]
+        }
+      ];
+
+      var statusLabel = { base:'BASE PLAN · RECOMMENDED', rejected:'REJECTED', alternative:'Alternative' };
+      var countryLegend = [
+        { country:'Vietnam', cities:[['Hanoi','Hanoi'],['Da Nang','Da Nang'],['Ho Chi Minh City','Saigon']] },
+        { country:'China', cities:[['Shanghai','Shanghai'],['Kunming','Kunming'],['Nanning','Nanning']] },
+        { country:'Laos', cities:[['Vientiane','Vientiane']] },
+        { country:'Cambodia', cities:[['Phnom Penh','Phnom Penh']] },
+        { country:'Thailand', cities:[['Bangkok','Bangkok'],['Chiang Mai','Chiang Mai']] },
+        { country:'Malaysia', cities:[['Penang','Penang'],['Kuala Lumpur','KL']] },
+        { country:'Singapore', cities:[['Singapore','Singapore']] },
+        { country:'Indonesia', cities:[['Bali','Bali']] },
+        { country:'South Korea', cities:[['Seoul','Seoul']] },
+        { country:'Australia', cities:[['Melbourne','Melbourne']] },
+        { country:'Chile', cities:[['Santiago','Santiago']] },
+        { country:'Paraguay', cities:[['Asuncion','Asuncion']] },
+        { country:'Brazil', cities:[['Sao Paulo','Sao Paulo']] },
+        { country:'Peru', cities:[['Lima','Lima']] },
+        { country:'Spain', cities:[['Madrid','Madrid']] }
+      ];
+      var legend = document.getElementById('legend');
+      var routesEl = document.getElementById('routes');
+      var heading = document.getElementById('month-heading');
+      var tooltip = document.getElementById('tooltip');
+      var activeCell = null;
+
+      function money(value) { return value == null ? 'TBD' : 'CAD$' + value.toLocaleString('en-CA'); }
+      function nights(value) { return typeof value === 'number' ? value + ' nights' : value; }
+      function prettyDate(value) {
+        var parts = value.split('-');
+        var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        return date.toLocaleDateString('en-CA', { month:'short', day:'numeric', year:'numeric' });
+      }
+      function isoDate(value) {
+        var parts = value.split('-');
+        return new Date(Date.UTC(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2])));
+      }
+      function isoValue(date) {
+        return date.toISOString().slice(0, 10);
+      }
+      function staysInMonth(blocks, month) {
+        var monthDays = (isoDate(month.end) - isoDate(month.start)) / 86400000;
+        return blocks.map(function (stay) {
+          var start = stay.start > month.start ? stay.start : month.start;
+          var end = stay.end < month.end ? stay.end : month.end;
+          var duration = Math.max(0, (isoDate(end) - isoDate(start)) / 86400000);
+          if (!duration) return null;
+          return {
+            stay:stay,
+            duration:duration,
+            left:((isoDate(start) - isoDate(month.start)) / 86400000) / monthDays * 100,
+            width:duration / monthDays * 100,
+            continues:month.end === isoValue(timelineEnd) && stay.end > month.end
+          };
+        }).filter(Boolean);
+      }
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>'"]/g, function (ch) {
+          return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch];
+        });
+      }
+      function routeKey(route) {
+        var match = route.name.match(/^(V\d+b?)/);
+        return match ? match[1] : '';
+      }
+      function transportMarkup(route) {
+        var legs = transportLegs[routeKey(route)];
+        if (!legs) {
+          return '<h3>Transport legs</h3><p class="transport-empty">Detailed legs not yet researched for this variant.</p>';
+        }
+        var rows = legs.map(function (item, index) {
+          var duration = escapeHtml(item.duration);
+          if (item.note) duration += '<span class="leg-note">' + escapeHtml(item.note) + '</span>';
+          return '<tr>' +
+            '<td data-label="#">' + (index + 1) + '</td>' +
+            '<td data-label="Date">' + escapeHtml(item.date) + '</td>' +
+            '<td data-label="From → To">' + escapeHtml(item.from) + ' → ' + escapeHtml(item.to) + '</td>' +
+            '<td data-label="Mode">' + escapeHtml(item.mode) + '</td>' +
+            '<td data-label="Company">' + escapeHtml(item.company) + '</td>' +
+            '<td data-label="No.">' + escapeHtml(item.number) + '</td>' +
+            '<td data-label="Duration">' + duration + '</td>' +
+            '<td data-label="Cost">' + escapeHtml(item.cost) + '</td>' +
+          '</tr>';
+        }).join('');
+        return '<h3>Transport legs</h3>' +
+          '<table class="transport-table">' +
+            '<colgroup><col><col><col><col><col><col><col><col></colgroup>' +
+            '<thead><tr><th>#</th><th>Date</th><th>From → To</th><th>Mode</th><th>Company</th><th>No.</th><th>Duration</th><th>Cost</th></tr></thead>' +
+            '<tbody>' + rows + '</tbody>' +
+          '</table>' +
+          '<p class="transport-footnote">Fares checked 2026-10-13 via Kiwi (1 personal item + carry-on + checked bag, no US routing, max 20h). All flight fares are all-in totals including taxes and carrier fees as priced by Kiwi; the search API returns a single total price with no separate tax/fee breakdown. Trains and buses: 20kg free allowance per adult on China and Vietnam rail (rarely enforced in practice); no airline-style baggage fees, so a backpack plus carry-on plus suitcase travels free. Rail/bus legs are estimates. &#39;—&#39; means not yet checked. Row Transport totals were scored with Oct 11 fares.</p>';
+      }
+
+      countryLegend.forEach(function (item) {
+        var li = document.createElement('li');
+        li.className = 'legend-country';
+        var cityHtml = item.cities.map(function (entry) {
+          return '<span class="legend-city"><span class="swatch" style="--swatch:' + cities[entry[0]].color + '"></span>' + escapeHtml(entry[1]) + '</span>';
+        }).join('');
+        li.innerHTML = '<strong>' + escapeHtml(item.country) + '</strong><span class="legend-cities">' + cityHtml + '</span>';
+        legend.appendChild(li);
+      });
+
+      months.forEach(function (month) {
+        var span = document.createElement('span');
+        span.textContent = month.label;
+        heading.appendChild(span);
+      });
+
+      routes.forEach(function (route, routeIndex) {
+        var article = document.createElement('article');
+        article.className = 'route ' + route.status;
+
+        var detailId = 'transport-detail-' + routeIndex;
+        var info = document.createElement('button');
+        info.type = 'button';
+        info.className = 'route-info';
+        info.setAttribute('aria-expanded', 'false');
+        info.setAttribute('aria-controls', detailId);
+        info.innerHTML =
+          '<div class="route-topline">' +
+            '<div class="route-title"><span class="route-number">' + String(routeIndex + 1).padStart(2, '0') + '</span>' + escapeHtml(route.name) + '</div>' +
+            '<span class="route-actions"><span class="badge ' + route.status + '">' + statusLabel[route.status] + '</span>' +
+            '<svg class="chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12l5-4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>' +
+          '</div>' +
+          '<div class="stats">' +
+            '<span class="stat">Final <strong>' + route.final + '</strong></span>' +
+            (route.quality != null ? '<span class="stat">Quality <strong>' + route.quality + '</strong></span>' : '') +
+            '<span class="stat">Money <strong>' + money(route.money) + '</strong></span>' +
+            '<span class="stat">Transport <strong>' + money(route.flights) + '</strong></span>' +
+            '<span class="stat">Cold <strong>' + nights(route.cold) + '</strong></span>' +
+            '<span class="stat">Wet <strong>' + nights(route.wet) + '</strong></span>' +
+          '</div>' +
+          (route.reason ? '<div class="reason">' + escapeHtml(route.reason) + '</div>' : '');
+
+        var grid = document.createElement('div');
+        grid.className = 'month-grid';
+        grid.setAttribute('aria-label', route.name + ' monthly locations, October 2026 through June 2027');
+
+        months.forEach(function (month) {
+          var visits = staysInMonth(route.blocks, month);
+          var cell = document.createElement('div');
+          cell.className = 'month-cell' + (visits.length ? '' : ' empty');
+          cell.insertAdjacentHTML('beforeend', '<span class="month-label">' + escapeHtml(month.label) + '</span>');
+
+          visits.forEach(function (visit) {
+            var city = cities[visit.stay.city];
+            var segment = document.createElement('button');
+            segment.type = 'button';
+            segment.className = 'stay-segment' + (visit.duration <= 2 ? ' short' : '');
+            segment.style.setProperty('--segment-left', visit.left.toFixed(3) + '%');
+            segment.style.setProperty('--segment-width', visit.width.toFixed(3) + '%');
+            segment.style.setProperty('--segment-color', city.color);
+            segment.dataset.tipTitle = city.short;
+            segment.dataset.tipDates = city.country + ' · ' + prettyDate(visit.stay.start) + ' – ' + prettyDate(visit.stay.end);
+            segment.setAttribute('aria-label', city.short + ', ' + segment.dataset.tipDates);
+            cell.appendChild(segment);
+            if (visit.continues) {
+              var marker = document.createElement('span');
+              marker.className = 'continues-marker';
+              marker.textContent = 'continues';
+              marker.setAttribute('aria-hidden', 'true');
+              cell.appendChild(marker);
+            }
+          });
+
+          grid.appendChild(cell);
+        });
+
+        var details = document.createElement('div');
+        details.className = 'transport-details';
+        details.id = detailId;
+        details.innerHTML = transportMarkup(route);
+
+        article.appendChild(info);
+        article.appendChild(grid);
+        article.appendChild(details);
+        routesEl.appendChild(article);
+      });
+
+      function toggleTransport(button) {
+        var detail = document.getElementById(button.getAttribute('aria-controls'));
+        var willOpen = button.getAttribute('aria-expanded') !== 'true';
+        routesEl.querySelectorAll('.route-info[aria-expanded="true"]').forEach(function (otherButton) {
+          if (otherButton === button) return;
+          otherButton.setAttribute('aria-expanded', 'false');
+          document.getElementById(otherButton.getAttribute('aria-controls')).classList.remove('open');
+        });
+        button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        detail.classList.toggle('open', willOpen);
+      }
+
+      function positionTooltip(cell) {
+        var rect = cell.getBoundingClientRect();
+        var tipRect = tooltip.getBoundingClientRect();
+        var left = rect.left + rect.width / 2 - tipRect.width / 2;
+        left = Math.max(12, Math.min(window.innerWidth - tipRect.width - 12, left));
+        var top = rect.top - tipRect.height - 9;
+        if (top < 10) top = rect.bottom + 9;
+        tooltip.style.left = Math.round(left) + 'px';
+        tooltip.style.top = Math.round(top) + 'px';
+      }
+
+      function showTooltip(cell) {
+        activeCell = cell;
+        var detailLines = cell.dataset.tipDates.split('||').map(escapeHtml).join('<br>');
+        tooltip.innerHTML = '<strong>' + escapeHtml(cell.dataset.tipTitle) + '</strong><span>' + detailLines + '</span>';
+        tooltip.classList.add('show');
+        positionTooltip(cell);
+      }
+
+      function hideTooltip(cell) {
+        if (cell && activeCell !== cell) return;
+        activeCell = null;
+        tooltip.classList.remove('show');
+      }
+
+      routesEl.addEventListener('mouseover', function (event) {
+        var segment = event.target.closest('.stay-segment');
+        if (segment) showTooltip(segment);
+      });
+      routesEl.addEventListener('mouseout', function (event) {
+        var segment = event.target.closest('.stay-segment');
+        if (segment && !segment.contains(event.relatedTarget)) hideTooltip(segment);
+      });
+      routesEl.addEventListener('focusin', function (event) {
+        var segment = event.target.closest('.stay-segment');
+        if (segment) showTooltip(segment);
+      });
+      routesEl.addEventListener('focusout', function (event) {
+        var segment = event.target.closest('.stay-segment');
+        if (segment) hideTooltip(segment);
+      });
+      routesEl.addEventListener('click', function (event) {
+        var routeButton = event.target.closest('.route-info');
+        if (routeButton) {
+          toggleTransport(routeButton);
+          hideTooltip();
+          return;
+        }
+        var segment = event.target.closest('.stay-segment');
+        if (segment) {
+          showTooltip(segment);
+          return;
+        }
+        var routeRow = event.target.closest('.route');
+        if (routeRow && !event.target.closest('.transport-details')) {
+          toggleTransport(routeRow.querySelector('.route-info'));
+        }
+      });
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest('.stay-segment')) hideTooltip();
+      });
+      window.addEventListener('resize', function () { if (activeCell) positionTooltip(activeCell); });
+      window.addEventListener('scroll', function () { if (activeCell) positionTooltip(activeCell); }, { passive:true });
+    })();
+  </script>
+</body>
+</html>

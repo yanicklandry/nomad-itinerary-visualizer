@@ -9,8 +9,8 @@ GitHub Pages: https://yanicklandry.github.io/nomad-itinerary-visualizer/
 ## What's inside
 
 - `index.html`: the whole visualizer (one self-contained file, no build step).
-- 46 routes in three groups:
-  - **With the Shanghai week** (Gabryl, Dec 6 to 13): V23 (base plan chosen Oct 13), V23b to V34. Comparable with each other.
+- 51 routes in three groups:
+  - **With the Shanghai week** (Gabryl, Dec 6 to 13): V23 (base plan chosen Oct 13), V23b to V41 (V38: current front end, Oct 14). Comparable with each other.
   - **Without the Shanghai week** (Oct 8 to 12): V8 to V22, V14b, S0, W1, W4, BR2.
   - **Early drafts** (Oct 7 rules, not comparable): Route A, Spines, V3 to V7, the Dream Trip plan.
 - Controls: weight profile (Default, Friends first, Weather first, Discovery first) and the value of one point (CAD 300, 1,000, 3,000). The ranking and the takeaway update live.

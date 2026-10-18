@@ -9,10 +9,10 @@ GitHub Pages: https://yanicklandry.github.io/nomad-itinerary-visualizer/
 ## What's inside
 
 - `index.html`: the whole visualizer (one self-contained file, no build step).
-- 56 routes in five groups:
-  - **Current choices, with the Shanghai week** (Oct 18): V38 (Action plan), V39 to V42w. All start Hanoi Oct 26 to Nov 1 with no 33h train. Best: V42 (Da Nang in February).
-  - **Current choices, without the Shanghai week** (Oct 18): V43 to V45. Best: V44 (Da Nang in January).
-  - **With the Shanghai week, Oct 13 to 14 drafts**: V23 (base plan chosen Oct 13), V23b to V35. Built on the 33h train rejected Oct 14.
+- 58 routes in five groups. Current plan: V46 (Oct 18), by train Hanoi 4 days, Da Nang 2 days, Saigon; V47 is the same without the Shanghai week.
+  - **Current choices, with the Shanghai week** (Oct 18): V46 (plan, Oct 18), V38, V39 to V42w. All start Hanoi Oct 26 to Nov 1 with no 33h train. Best: V42 (Da Nang in February).
+  - **Current choices, without the Shanghai week** (Oct 18): V47, V43 to V45. Best by score before V47: V44 (Da Nang in January).
+  - **With the Shanghai week, Oct 13 to 14 drafts**: V23 (base plan Oct 13 to 18), V23b to V35. Built on the 33h train rejected Oct 14.
   - **Without the Shanghai week** (Oct 8 to 12): V8 to V22, V14b, S0, W1, W4, BR2.
   - **Early drafts** (Oct 7 rules, not comparable): Route A, Spines, V3 to V7, the Dream Trip plan.
 - Controls: weight profile (Default, Friends first, Weather first, Discovery first) and the value of one point (CAD 300, 1,000, 3,000). The ranking and the takeaway update live.

@@ -9,7 +9,8 @@ GitHub Pages: https://yanicklandry.github.io/nomad-itinerary-visualizer/
 ## What's inside
 
 - `index.html`: the whole visualizer (one self-contained file, no build step).
-- 58 routes in five groups. Current plan: V46 (Oct 18), by train Hanoi 4 days, Da Nang 2 days, Saigon; V47 is the same without the Shanghai week.
+- 61 routes in six groups. Current plan: V46 (Oct 18) as lived = V48 (rescored Nov 15). Best from Nov 15: V49, same route with a 2-night Santiago.
+  - **As lived, rescored Nov 15**: V48 (V46 as it actually happened: Da Nang week, Shanghai Dec 5 to 15), V49 (plus 2-night Santiago, Asuncion May 4 to 18), V50 (2-night Santiago, Asuncion May 4 to 23). See planner section 34.
   - **Current choices, with the Shanghai week** (Oct 18): V46 (plan, Oct 18), V38, V39 to V42w. All start Hanoi Oct 26 to Nov 1 with no 33h train. Best: V42 (Da Nang in February).
   - **Current choices, without the Shanghai week** (Oct 18): V47, V43 to V45. Best by score before V47: V44 (Da Nang in January).
   - **With the Shanghai week, Oct 13 to 14 drafts**: V23 (base plan Oct 13 to 18), V23b to V35. Built on the 33h train rejected Oct 14.
